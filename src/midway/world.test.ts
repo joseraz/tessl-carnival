@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   boothInReach,
   canStand,
+  chatter,
+  CHATTER,
+  CHATTER_TIME,
   createVisitors,
   createWalker,
   findPath,
@@ -184,6 +187,39 @@ describe('visitors', () => {
       expect(isBlocked(map, Math.floor(visitor.x), Math.floor(visitor.y))).toBe(false);
       expect(visitor.stride).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('visitor chatter', () => {
+  const map = layoutMidway(['water-cannon']);
+
+  it('has visitors say something friendly when they stop for a rest', () => {
+    const [visitor] = createVisitors(map, 1, seededRandom(2));
+    visitor.path = [{ x: visitor.x, y: visitor.y }];
+    updateVisitor(map, visitor, 1 / 30, () => 0);
+    expect(CHATTER).toContain(visitor.says);
+    expect(visitor.saying).toBe(CHATTER_TIME);
+  });
+
+  it('stays quiet sometimes', () => {
+    const [visitor] = createVisitors(map, 1, seededRandom(2));
+    chatter(visitor, () => 0.99);
+    expect(visitor.says).toBeUndefined();
+  });
+
+  it('stops talking after a while', () => {
+    const [visitor] = createVisitors(map, 1, seededRandom(2));
+    chatter(visitor, () => 0);
+    visitor.rest = 100;
+    updateVisitor(map, visitor, CHATTER_TIME / 2, () => 0);
+    expect(visitor.says).toBeDefined();
+    updateVisitor(map, visitor, CHATTER_TIME / 2, () => 0);
+    expect(visitor.says).toBeUndefined();
+  });
+
+  it('starts everyone quiet', () => {
+    for (const visitor of createVisitors(map, 5, seededRandom(3)))
+      expect(visitor.says).toBeUndefined();
   });
 });
 
