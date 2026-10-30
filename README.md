@@ -70,8 +70,9 @@ DeepMind, Meta, Netlify, Thoughtworks and Docker.
 ## The carnival
 
 The carnival is a small browser game. It ships with one game, the **water
-cannon**, and a midway you walk around: a sunny fairground with tents, rides and
-a booth for every game. Empty booths say "coming soon" until a game fills them.
+cannon**, and a midway you walk around: a sunny fairground with tents, rides,
+visitors who chat about the fun they are having, and a booth for every game.
+Empty booths say "coming soon" until a game fills them.
 
 You grow your carnival by adding games through your factory. Each game lives in
 its own folder, and the midway finds it there, so a new game touches no shared

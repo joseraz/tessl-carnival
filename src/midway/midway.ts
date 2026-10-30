@@ -18,6 +18,7 @@ import {
   label,
   PLAYER_LOOK,
   propBounds,
+  speechBubble,
   visitorLook,
   type Box,
   type Cloud,
@@ -384,9 +385,14 @@ export function startMidway(canvas: HTMLCanvasElement, options: MidwayOptions): 
     drawBunting(ctx, map, t, visible);
     drawFloaters(ctx, floaters);
 
-    // The prompt over the booth in reach, at full resolution.
+    // Visitors' chatter and the prompt over the booth in reach, at full resolution.
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    for (const v of visitors) {
+      if (!v.says || !onScreen(walkerBox(v))) continue;
+      const head = toScreen(v.x, v.y);
+      speechBubble(ctx, v.says, (head.x - cam.x) * zoom, (head.y - 36 - cam.y) * zoom);
+    }
     if (inReach?.gameId) {
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const c = toScreen(inReach.x + 1, inReach.y + 1);
       label(
         ctx,

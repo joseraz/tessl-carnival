@@ -1792,6 +1792,29 @@ export function drawBooth(ctx: Ctx, slot: BoothSlot, name: string, t: number, gl
   booth(ctx, slot, name, t, glow);
 }
 
+/** A speech bubble over a visitor's head, its tail pointing down at a screen point. */
+export function speechBubble(ctx: Ctx, text: string, x: number, y: number) {
+  const { colors } = theme;
+  ctx.font = canvasFont('small');
+  const width = ctx.measureText(text).width + 16;
+  const height = theme.font.small + 10;
+  const top = y - 6 - height;
+  ctx.fillStyle = colors.text;
+  ctx.strokeStyle = colors.background;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(x - width / 2, top, width, height, height / 2);
+  ctx.moveTo(x - 4, top + height);
+  ctx.lineTo(x, y);
+  ctx.lineTo(x + 4, top + height);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = colors.background;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, top + height / 2 + 1);
+}
+
 /** A rounded callout with a line of text, pointing down at a screen point. */
 export function label(ctx: Ctx, text: string, x: number, y: number) {
   const { colors, radius } = theme;

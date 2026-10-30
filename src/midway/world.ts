@@ -11,6 +11,10 @@ export const TILE_H = 16;
 
 export const WALK_SPEED = 4.2;
 export const VISITOR_SPEED = 1.6;
+/** How long a visitor's line of chatter stays up, in seconds. */
+export const CHATTER_TIME = 3;
+/** The chance a visitor says something when they stop for a rest. */
+export const CHATTER_CHANCE = 0.6;
 export const WALKER_RADIUS = 0.3;
 /** How long a jump lasts, in seconds, and how high it goes, in screen pixels. */
 export const JUMP_TIME = 0.45;
@@ -503,6 +507,40 @@ export interface Visitor extends Walker {
   /** Seconds to wait before setting off again. */
   rest: number;
   look: number;
+  /** What the visitor is saying, or undefined when they're quiet. */
+  says?: string;
+  /** Seconds left before the visitor stops saying it. */
+  saying: number;
+}
+
+/** Friendly things visitors say while they enjoy the carnival. */
+export const CHATTER = [
+  'What a day!',
+  'I love this place!',
+  'Wheee!',
+  'Best carnival ever!',
+  'Popcorn, anyone?',
+  "Let's ride the wheel!",
+  'I won a prize!',
+  'So much fun!',
+  'Look at the balloons!',
+  'One more game!',
+] as const;
+
+/** Sometimes starts the visitor saying a line of chatter. */
+export function chatter(visitor: Visitor, random: () => number) {
+  if (random() >= CHATTER_CHANCE) return;
+  visitor.says = CHATTER[Math.floor(random() * CHATTER.length)];
+  visitor.saying = CHATTER_TIME;
+}
+
+function updateChatter(visitor: Visitor, dt: number) {
+  if (!visitor.says) return;
+  visitor.saying -= dt;
+  if (visitor.saying <= 0) {
+    visitor.says = undefined;
+    visitor.saying = 0;
+  }
 }
 
 /** Tiles visitors like to stroll to: the avenue and the plazas. */
@@ -520,11 +558,19 @@ export function createVisitors(map: MidwayMap, count: number, random: () => numb
   const tiles = strollTiles(map);
   return Array.from({ length: count }, (_, look) => {
     const tile = tiles[Math.floor(random() * tiles.length)];
-    return { ...createWalker({ x: tile.x + 0.5, y: tile.y + 0.5 }), rest: random() * 3, look };
+    return {
+      ...createWalker({ x: tile.x + 0.5, y: tile.y + 0.5 }),
+      rest: random() * 3,
+      look,
+      saying: 0,
+    };
   });
 }
 
-/** Visitors rest a while, then stroll to somewhere else on the midway. */
+/**
+ * Visitors rest a while, then stroll to somewhere else on the midway. When they
+ * stop, they sometimes say how much they're enjoying it.
+ */
 export function updateVisitor(
   map: MidwayMap,
   visitor: Visitor,
@@ -532,8 +578,12 @@ export function updateVisitor(
   random: () => number,
   tiles = strollTiles(map),
 ) {
+  updateChatter(visitor, dt);
   if (visitor.path.length > 0) {
-    if (followPath(visitor, dt, VISITOR_SPEED)) visitor.rest = 1 + random() * 4;
+    if (followPath(visitor, dt, VISITOR_SPEED)) {
+      visitor.rest = 1 + random() * 4;
+      chatter(visitor, random);
+    }
     return;
   }
   visitor.walking = false;
