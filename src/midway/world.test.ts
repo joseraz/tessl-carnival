@@ -8,11 +8,16 @@ import {
   followPath,
   inputDirection,
   isBlocked,
+  jump,
+  JUMP_HEIGHT,
+  JUMP_TIME,
+  jumpHeight,
   layoutMidway,
   pathToBooth,
   seededRandom,
   toScreen,
   toTile,
+  updateJump,
   updateVisitor,
   walk,
 } from './world';
@@ -179,5 +184,34 @@ describe('visitors', () => {
       expect(isBlocked(map, Math.floor(visitor.x), Math.floor(visitor.y))).toBe(false);
       expect(visitor.stride).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('jump', () => {
+  it('lifts the walker off the ground and brings them back down', () => {
+    const walker = createWalker({ x: 1, y: 1 });
+    expect(jumpHeight(walker)).toBe(0);
+    jump(walker);
+    updateJump(walker, JUMP_TIME / 2);
+    expect(jumpHeight(walker)).toBeCloseTo(JUMP_HEIGHT);
+    updateJump(walker, JUMP_TIME / 2);
+    expect(jumpHeight(walker)).toBe(0);
+    expect(walker.jump).toBe(0);
+  });
+
+  it('does not restart a jump that is already in the air', () => {
+    const walker = createWalker({ x: 1, y: 1 });
+    jump(walker);
+    updateJump(walker, JUMP_TIME / 2);
+    jump(walker);
+    updateJump(walker, JUMP_TIME / 2);
+    expect(jumpHeight(walker)).toBe(0);
+  });
+
+  it('keeps the walker where they stand', () => {
+    const walker = createWalker({ x: 2.5, y: 3.5 });
+    jump(walker);
+    updateJump(walker, JUMP_TIME / 3);
+    expect(walker).toMatchObject({ x: 2.5, y: 3.5 });
   });
 });
